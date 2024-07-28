@@ -13,6 +13,12 @@ impl AsRef<Post> for Post {
     }
 }
 
+impl AsMut<Post> for Post {
+    fn as_mut(&mut self) -> &mut Post {
+        self
+    }
+}
+
 #[allow(dead_code)]
 #[derive(Debug, Default)]
 struct Video;
@@ -30,6 +36,12 @@ impl AsRef<Post> for VideoGuide {
     }
 }
 
+impl AsMut<Post> for VideoGuide {
+    fn as_mut(&mut self) -> &mut Post {
+        &mut self.post
+    }
+}
+
 // #[allow(dead_code)]
 // fn notify(_: &Post) {}
 
@@ -39,6 +51,15 @@ where
     P: AsRef<Post>,
 {
     let post = post.as_ref();
+    println!("Post {:?}", post);
+}
+
+#[allow(dead_code)]
+fn notify_mut<P>(post: &mut P)
+where
+    P: AsMut<Post>,
+{
+    let post = post.as_mut();
     println!("Post {:?}", post);
 }
 
@@ -60,8 +81,8 @@ where
 
 #[allow(dead_code)]
 pub fn run() -> Result<(), Box<dyn std::error::Error>> {
-    let post = fetch_post_with_id("123");
-    notify(post);
+    let mut post = fetch_post_with_id("123");
+    notify_mut(&mut post);
 
     let video_guide = fetch_video_with_id("123");
     notify(video_guide);
