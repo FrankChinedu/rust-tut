@@ -5,9 +5,15 @@ fn main() {
     let tokens = tokenize(input);
     let mut parser = Parser::new(tokens);
     let ast = parser.parse();
+    let add = 3 + 5 * (10 - 4);
+
+    println!("add {}", add);
 
     // You can print the AST or add more detailed checks here.
     println!("- {:?}", ast);
+
+    let result = ast.evaluate();
+    println!("Result: {}", result);
 }
 
 #[allow(dead_code)]
@@ -56,6 +62,33 @@ enum ASTNode {
     },
 }
 
+impl ASTNode {
+    fn evaluate(&self) -> i64 {
+        match self {
+            ASTNode::Number(value) => *value,
+            ASTNode::UnaryOp { op, node } => {
+                let value = node.evaluate();
+                match op {
+                    Token::Plus => value,   // Unary plus, no change
+                    Token::Minus => -value, // Unary minus, negate the value
+                    _ => panic!("Unexpected unary operator: {:?}", op),
+                }
+            }
+            ASTNode::BinOp { left, op, right } => {
+                let left_val = left.evaluate();
+                let right_val = right.evaluate();
+                match op {
+                    Token::Plus => left_val + right_val,
+                    Token::Minus => left_val - right_val,
+                    Token::Multiply => left_val * right_val,
+                    Token::Divide => left_val / right_val,
+                    _ => panic!("Unexpected binary operator: {:?}", op),
+                }
+            }
+        }
+    }
+}
+
 #[derive(Debug)]
 struct Parser {
     tokens: Vec<Token>,
@@ -95,7 +128,6 @@ impl Parser {
 
     fn parse_term(&mut self) -> ASTNode {
         let mut node = self.parse_factor();
-        println!("node {:#?}", node);
 
         while self.pos < self.tokens.len() {
             match self.tokens[self.pos] {
@@ -112,15 +144,11 @@ impl Parser {
                 _ => break,
             }
         }
-        println!("node after {:?}", node);
 
-        panic!("here");
-
-        // node
+        node
     }
 
     fn parse_factor(&mut self) -> ASTNode {
-        dbg!(&self);
         match self.tokens[self.pos] {
             Token::Number(value) => {
                 self.pos += 1;
